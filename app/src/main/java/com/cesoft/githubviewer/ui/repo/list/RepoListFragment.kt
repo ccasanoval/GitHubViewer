@@ -53,7 +53,7 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
             refreshData(data)
         })
         viewModel.status.observe(viewLifecycleOwner, Observer { status ->
-            refreshStatus(status)
+            refreshStatus(getString(R.string.status, status.page, status.count))
         })
     }
 
@@ -68,7 +68,7 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         adapter?.notifyDataSetChanged()
     }
     private fun refreshStatus(status: String) {
-        lblStatus.text = status//TODO: Conver to object, so viewModel dont know about formatting...
+        lblStatus.text = status
     }
 
     override fun onResume() {

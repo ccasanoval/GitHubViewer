@@ -24,8 +24,8 @@ class RepoListViewModel : ViewModel() {
     val list: LiveData<MutableList<RepoModel>>
         get() = _list
 
-    private val _status = MutableLiveData<String>()
-    val status: LiveData<String>
+    private val _status = MutableLiveData<Status>()
+    val status: LiveData<Status>
         get() = _status
 
     init {
@@ -37,7 +37,7 @@ class RepoListViewModel : ViewModel() {
 
     private fun processRes(repos: MutableList<RepoModel>) {
         _list.postValue(repos)
-        _status.postValue("Page: ${Repository.getPage()+1} (${repos.size} items)")//TODO: Format in view
+        _status.postValue(Status(Repository.getPage(), repos.size))
         debugRes(repos)
     }
     private fun debugRes(repos: MutableList<RepoModel>) {

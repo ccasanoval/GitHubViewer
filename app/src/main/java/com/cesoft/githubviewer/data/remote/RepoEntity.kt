@@ -16,16 +16,14 @@ data class RepoEntity(
     val name: String?,
     @SerializedName("full_name")
     val fullName: String?,
+    @SerializedName("description")
+    val description: String?,
     @SerializedName("html_url")
     val htmlUrl: String?,
     @SerializedName("url")
-    val url: String?,
-    @SerializedName("description")
-    val description: String?,
-    @SerializedName("languages_url")
-    val languagesUrl: String?,
-    @SerializedName("tags_url")
-    val tagsUrl: String?
+    val url: String?
+
+
 ) {
     fun toModel(): RepoModel {
         val ownerModel = owner?.toModel()
@@ -37,9 +35,7 @@ data class RepoEntity(
             fullName = fullName,
             description = description,
             htmlUrl = htmlUrl,
-            url = url,
-            languagesUrl = languagesUrl,
-            tagUrl = tagsUrl)
+            url = url)
     }
 }
 
@@ -116,5 +112,4 @@ Link: <https://api.github.com/repositories?since=364>; rel="next"
 "trees_url": "http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}"
 }
 ]
- *
- * */
+*/

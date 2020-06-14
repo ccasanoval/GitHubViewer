@@ -39,14 +39,14 @@ class RepoListAdapter(val items: MutableList<RepoModel>, val callback: OnClickLi
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: RepoModel) {
-
             itemView.setOnClickListener {
                 callback.onItemClicked(item)
             }
-
-            itemView.name.text = item.fullName
-
-            //...
+            //itemView.name.text = itemView.context.getString(R.string.item_title, item.name, item.owner?.login)
+            itemView.name.text = item.name
+            itemView.description.text = item.description
+            itemView.owner.text = itemView.context.getString(R.string.owner_title, item.owner?.login)
+            Glide.with(itemView).load(item.owner?.avatarUrl).into(itemView.image)
         }
     }
 

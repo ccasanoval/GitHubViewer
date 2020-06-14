@@ -7,4 +7,7 @@
     <string name="previous">Anterior</string>
     <string name="next">Siguiente</string>
     <string name="search">Search</string>
+    <string name="owner_avatar">Avatar del propietario</string>
+    <string name="owner_title">por %s</string>
+    <string name="status">Página: %d (%d repos)</string>
 </resources>

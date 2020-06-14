@@ -8,4 +8,7 @@
     <string name="previous">Previous</string>
     <string name="next">Next</string>
     <string name="search">Search</string>
+    <string name="owner_avatar">Owner avatar</string>
+    <string name="owner_title">by %s</string>
+    <string name="status">Page: %d (%d repos)</string>
 </resources>

@@ -9,7 +9,7 @@ object Repository {
     //private val local = ...
     private val remote = GitHubApiImpl
 
-    fun getPage() = remote.page
+    fun getPage() = remote.page +1
     suspend fun getRepoListPrev(): MutableList<RepoModel> { // = remote.getRepoListPrevPage()
         val res = remote.getRepoListPrevPage()
         return if(res != null) {
