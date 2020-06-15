@@ -20,7 +20,6 @@ class RepoItemFragment : Fragment() {
     private var viewModel = RepoItemViewModel()
     var repo: RepoModel? = null
 
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

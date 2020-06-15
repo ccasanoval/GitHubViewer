@@ -2,9 +2,8 @@ package com.cesoft.githubviewer.ui.repo.list
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -16,12 +15,13 @@ import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.ui.hideMenuIcon
 import kotlinx.android.synthetic.main.fragment_repo_list.*
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
+class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAdapter.OnSearchListener {
 
     private var viewModel = RepoListViewModel()
-    private var adapter: RepoListAdapter? = RepoListAdapter(mutableListOf(), this)
+    private var adapter: RepoListAdapter? = RepoListAdapter(mutableListOf(), this, this)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,7 +55,10 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
             refreshData(data)
         })
         viewModel.status.observe(viewLifecycleOwner, Observer { status ->
-            refreshStatus(getString(R.string.status, status.page, status.count))
+            if(status.pageMax == 0)
+                refreshStatus(getString(R.string.status, status.page, status.count))
+            else
+                refreshStatus(getString(R.string.status_max_page, status.page, status.pageMax, status.count))
         })
     }
 
@@ -65,9 +68,13 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         findNavController().navigate(R.id.nav_repo_item, bundle)
         //findNavController().navigate(R.id.action_RepoListFragment_to_RepoItemFragment, bundle)
     }
+    /// Implements RepoListAdapter.OnSearchListener
+    override fun onSearch(query: String): MutableList<RepoModel>? {
+        return viewModel.onSearch(query)
+    }
 
     private fun refreshData(data: MutableList<RepoModel>) {
-        adapter = RepoListAdapter(data, this)
+        adapter = RepoListAdapter(data, this, this)
         list.adapter = adapter
         adapter?.notifyDataSetChanged()
     }
@@ -79,6 +86,41 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         super.onResume()
         hideMenuIcon()
     }
+
+    /// Menu
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.repolist, menu)
+        val menuItem = menu.findItem(R.id.menu_search)
+        val searchView = menuItem?.actionView as SearchView
+        searchView.apply {
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    adapter?.filter?.filter(query)
+                    return false
+                }
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    return true
+                }
+            })
+        }
+        menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                Log.e(TAG, "setOnCloseListener------------------------------------")
+                viewModel.onSeachClose()
+                return true // Return true to collapse action view
+            }
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                Log.e(TAG, "onMenuItemActionExpand------------------------------------")
+                return true
+            }
+        })
+    }
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        when(item.itemId) {
+//        }
+//        return super.onOptionsItemSelected(item)
+//    }
 
     companion object {
         private val TAG: String = RepoListFragment::class.simpleName!!

@@ -10,5 +10,7 @@
     <string name="search">Search</string>
     <string name="owner_avatar">Owner avatar</string>
     <string name="owner_title">by %s</string>
-    <string name="status">Page: %d (%d repos)</string>
+    <string name="status">Page: %d (%d per page)</string>
+    <string name="status_max_page">Page: %d of %d (%d per page)</string>
+    <string name="search_hint">Search a repo</string>
 </resources>
