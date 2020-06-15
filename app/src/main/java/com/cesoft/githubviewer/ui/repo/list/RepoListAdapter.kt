@@ -22,7 +22,7 @@ class RepoListAdapter(val items: MutableList<RepoModel>, val callback: OnClickLi
     }
 
     interface OnClickListener {
-        fun onItemClicked(item: RepoModel)
+        fun onItemClicked(repo: RepoModel)
     }
 
     private var list: MutableList<RepoModel>? = null

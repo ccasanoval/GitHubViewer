@@ -1,7 +1,8 @@
 package com.cesoft.githubviewer.data.remote
 
 import android.util.Log
-import com.cesoft.githubviewer.BuildConfig
+import com.cesoft.githubviewer.App
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -13,6 +14,9 @@ import java.lang.Exception
 //
 object GitHubApiImpl {
     private val TAG: String = GitHubApiImpl::class.simpleName!!
+    private const val CACHE_SIZE = 100 * 1024L      //bytes
+    private const val CACHE_MAX_AGE = 5*60             //seconds
+    private const val CACHE_MAX_STALE = 24*60*60 //seconds
     private const val GITHUB_API_URL = "https://api.github.com/"
 
     private var maxSearchPage = 0
@@ -26,34 +30,39 @@ object GitHubApiImpl {
         get() = currentPage
 
     private val api: GitHubApi by lazy {
-
-        val okHttpClientBuilder = OkHttpClient.Builder()
-        if(BuildConfig.DEBUG) {
-
-            val interceptor = HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
-                override fun log(message: String) {
-                    Log.e(TAG, "HttpLoggingInterceptor: $message")
-                }
-            })
-            interceptor.level = HttpLoggingInterceptor.Level.HEADERS//BASIC//NONE
-            okHttpClientBuilder.addInterceptor(interceptor)
-        }
-        val okHttpClient = okHttpClientBuilder.build()
-
         return@lazy Retrofit.Builder()
             .baseUrl(GITHUB_API_URL)
-            .client(okHttpClient)
+            .client(createHttpClient())
             .addConverterFactory(GsonConverterFactory.create())
-            //.addConverterFactory(GsonConverterFactory.create(getConverter()))
-            //.addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
             .create(GitHubApi::class.java)
     }
-//    private fun getConverter(): Gson {
-//        return GsonBuilder()
-//            .registerTypeAdapter(SearchRepoEntity::class.java, SearchRepoDeserializer<SearchRepoEntity>())
-//            .create()
-//    }
+
+    private fun createHttpClient(): OkHttpClient {
+        val cache = Cache(App.getInstance().cacheDir, CACHE_SIZE)
+
+        val interceptor = HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
+            override fun log(message: String) {
+                Log.e(TAG, "HttpLoggingInterceptor: $message")
+            }
+        })
+        interceptor.level = HttpLoggingInterceptor.Level.HEADERS//BASIC//NONE
+
+        return OkHttpClient.Builder()
+            .cache(cache)
+            .addInterceptor { chain ->
+                var request = chain.request()
+                request = if(Util.isOnline(App.getInstance())) {
+                    request.newBuilder().header("Cache-Control","public, max-age=$CACHE_MAX_AGE").build()
+                }
+                else {
+                    request.newBuilder().header("Cache-Control","public, only-if-cached, max-stale=$CACHE_MAX_STALE").build()
+                }
+                chain.proceed(request)
+            }
+            .addInterceptor(interceptor)
+            .build()
+    }
 
     private fun updateIndex(res: Response<List<RepoEntity>>) {
         res.headers()["link"]?.let { link ->
@@ -150,6 +159,15 @@ object GitHubApiImpl {
         if(!isSearching || currentPage < maxSearchPage)
             currentPage++
 
+        return if(isSearching) {
+            getRepoListSearch()
+        } else {
+            getRepoList()
+        }
+    }
+
+    suspend fun getRepoListSamePage(): List<RepoEntity>? {
+        Log.e(TAG, "getRepoListSamePage--------------------------- maxSearchPage=$maxSearchPage")
         return if(isSearching) {
             getRepoListSearch()
         } else {

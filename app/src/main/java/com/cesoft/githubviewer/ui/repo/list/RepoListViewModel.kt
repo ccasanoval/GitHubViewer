@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+// TODO: cuando se recrea la ventana por cambio de orientacion se pide la siguiente pagina, nor!
 class RepoListViewModel : ViewModel() {
 
     private val _list = MutableLiveData<MutableList<RepoModel>>()
@@ -30,7 +30,7 @@ class RepoListViewModel : ViewModel() {
 
     init {
         GlobalScope.launch(Dispatchers.IO) {
-            val repos = Repository.getRepoListNext()
+            val repos = Repository.getRepoListSame()
             processRes(repos)
         }
     }
@@ -38,22 +38,6 @@ class RepoListViewModel : ViewModel() {
     private fun processRes(repos: MutableList<RepoModel>) {
         _list.postValue(repos)
         _status.postValue(Status(Repository.getPage(), repos.size))
-        debugRes(repos)
-    }
-    private fun debugRes(repos: MutableList<RepoModel>) {
-        if(BuildConfig.DEBUG) {
-            android.util.Log.e(TAG, "PAGE=${Repository.getPage()}---------------------- #repos = ${repos.size}")
-            var i=0
-            for(repo in repos) {
-                android.util.Log.e(TAG, "${i++}----------------------REPO = ${repo.name}-------------------")
-                android.util.Log.e(TAG, "id = ${repo.id}")
-                //android.util.Log.e(TAG, "fullName = ${repo.fullName}")
-                //android.util.Log.e(TAG, "description = ${repo.description}")
-                //android.util.Log.e(TAG, "nodeId = ${repo.nodeId}")
-                //android.util.Log.e(TAG, "tagUrl = ${repo.tagUrl}")
-                android.util.Log.e(TAG, "url = ${repo.url}")
-            }
-        }
     }
 
     fun goPrev() {

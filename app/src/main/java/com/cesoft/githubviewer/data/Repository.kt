@@ -28,5 +28,13 @@ object Repository {
             mutableListOf()
         }
     }
-
+    suspend fun getRepoListSame(): MutableList<RepoModel> {
+        val res = remote.getRepoListSamePage()
+        return if(res != null) {
+            MutableList(res.size) { i -> res[i].toModel() }
+        }
+        else {
+            mutableListOf()
+        }
+    }
 }

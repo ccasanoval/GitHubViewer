@@ -5,8 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.cesoft.githubviewer.R
@@ -58,8 +60,10 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
     }
 
     /// Implements RepoListAdapter.OnClickListener
-    override fun onItemClicked(item: RepoModel) {
-        Log.e(TAG, "onItemClicked---------------------------------------item=${item.name}")
+    override fun onItemClicked(repo: RepoModel) {
+        val bundle = bundleOf(RepoModel.TAG to repo)
+        findNavController().navigate(R.id.nav_repo_item, bundle)
+        //findNavController().navigate(R.id.action_RepoListFragment_to_RepoItemFragment, bundle)
     }
 
     private fun refreshData(data: MutableList<RepoModel>) {
