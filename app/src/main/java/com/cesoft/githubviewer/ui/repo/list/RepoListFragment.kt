@@ -18,6 +18,8 @@ import kotlinx.android.synthetic.main.fragment_repo_list.*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// TODO: Detectar errores de API, mostrar y  no incrementar pagina!!!
+// TODO: Base de datos con las ultimas busquedas...? Autocomplete
 class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAdapter.OnSearchListener {
 
     private var viewModel = RepoListViewModel()
@@ -59,6 +61,12 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
                 refreshStatus(getString(R.string.status, status.page, status.count))
             else
                 refreshStatus(getString(R.string.status_max_page, status.page, status.pageMax, status.count))
+        })
+        /// STATE RETURNED
+        viewModel.isWorking.observe(viewLifecycleOwner, Observer { isWorking ->
+            btnPrev.isEnabled = !isWorking
+            btnNext.isEnabled = !isWorking
+            progressBar.visibility = if(isWorking) View.VISIBLE else View.GONE
         })
     }
 
@@ -106,12 +114,10 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
         }
         menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                Log.e(TAG, "setOnCloseListener------------------------------------")
                 viewModel.onSeachClose()
                 return true // Return true to collapse action view
             }
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-                Log.e(TAG, "onMenuItemActionExpand------------------------------------")
                 return true
             }
         })

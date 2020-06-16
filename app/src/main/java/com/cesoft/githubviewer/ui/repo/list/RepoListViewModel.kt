@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: progress icon !!
+//
 class RepoListViewModel : ViewModel() {
 
     private var currentQuery: String? = null
@@ -26,6 +26,12 @@ class RepoListViewModel : ViewModel() {
     val status: LiveData<Status>
         get() = _status
 
+    private val _isWorking = MutableLiveData<Boolean>()
+    private fun workInProgress() = _isWorking.postValue(true)
+    private fun workFinished() = _isWorking.postValue(false)
+    val isWorking: LiveData<Boolean>
+        get() = _isWorking
+
     init {
         GlobalScope.launch(Dispatchers.IO) {
             val repos = Repository.getRepoListSame()
@@ -34,21 +40,21 @@ class RepoListViewModel : ViewModel() {
     }
 
     private fun processRes(repos: MutableList<RepoModel>) {
-        Log.e(TAG, "processRes-------------------------------------------------------------------------------"+Repository.getPage()+" : "+Repository.getPageMax()+" "+repos.size)
         _list.postValue(repos)
         _status.postValue(Status(Repository.getPage(), Repository.getPageMax(), repos.size))
+        workFinished()
     }
 
     fun goPrev() {
         GlobalScope.launch(Dispatchers.IO) {
-            Log.e(TAG, "goPrev-------------------------------------------------------------------------------")
+            workInProgress()
             val repos = Repository.getRepoListPrev()
             processRes(repos)
         }
     }
     fun goNext(query: String?=null) {
-        Log.e(TAG, "goNext-------------------------------------------------------------------------------")
         GlobalScope.launch(Dispatchers.IO) {
+            workInProgress()
             val realQuery = query ?: currentQuery
             val repos = Repository.getRepoListNext(realQuery)
             processRes(repos)
@@ -56,17 +62,17 @@ class RepoListViewModel : ViewModel() {
     }
 
     fun onSearch(query: String): MutableList<RepoModel>? = runBlocking(Dispatchers.IO) {
-        Log.e(TAG, "onSearch-------------------------------------------------------------------------------")
+        workInProgress()
         currentQuery = query
         val repos = Repository.getRepoListNext(currentQuery)
         processRes(repos)
         repos
     }
     fun onSeachClose() {
-        Log.e(TAG, "onSeachClose-------------------------------------------------------------------------------")
         if(currentQuery != null) {
             currentQuery = null
             GlobalScope.launch(Dispatchers.IO) {
+                workInProgress()
                 val repos = Repository.getRepoListNext(currentQuery)
                 processRes(repos)
             }

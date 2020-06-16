@@ -181,7 +181,8 @@ object GitHubApiImpl {
             updatePagePrev()
             return if(isSearching) {
                 getRepoListSearch()
-            } else {
+            }
+            else {
                 getRepoList()
             }
         }
@@ -193,9 +194,10 @@ object GitHubApiImpl {
             updatePageNext(query != searchQuery)
             searchQuery = query
 
-            return if (isSearching) {
+            return if(isSearching) {
                 getRepoListSearch()
-            } else {
+            }
+            else {
                 getRepoList()
             }
         }
@@ -204,9 +206,10 @@ object GitHubApiImpl {
     suspend fun getRepoListSamePage(): List<RepoEntity>? {
         mutex.withLock {
             Log.e(TAG,"getRepoListSamePage--------------------------- maxSearchPage=$maxSearchPage")
-            return if (isSearching) {
+            return if(isSearching) {
                 getRepoListSearch()
-            } else {
+            }
+            else {
                 getRepoList()
             }
         }
