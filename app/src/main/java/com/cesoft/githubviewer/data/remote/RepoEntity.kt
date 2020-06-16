@@ -22,8 +22,6 @@ data class RepoEntity(
     val htmlUrl: String?,
     @SerializedName("url")
     val url: String?
-
-
 ) {
     fun toModel(): RepoModel {
         val ownerModel = owner?.toModel()

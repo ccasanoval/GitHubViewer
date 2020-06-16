@@ -1,7 +1,6 @@
 package com.cesoft.githubviewer.data
 
-import com.google.gson.annotations.SerializedName
-import java.util.*
+import java.util.Date
 
 data class RepoDetailModel(
     val id: String?,
@@ -13,10 +12,31 @@ data class RepoDetailModel(
     val htmlUrl: String?,
     val url: String?,
     /// Details
-    val createdAt: Date?,
+    val createdAt: Date?,//java.time.Instant?,
     val updatedAt: Date?,
     val pushedAt: Date?,
-    val homepage: String,
-    val language: String,
-    val size: Long
-)
+    val homepage: String?,
+    val language: String?,
+    val size: Long?
+) {
+    companion object {
+        fun fromRepo(repo: RepoModel): RepoDetailModel {
+            return RepoDetailModel(
+                id = repo.id,
+                nodeId = repo.nodeId,
+                owner = repo.owner,
+                name = repo.name,
+                fullName = repo.fullName,
+                description = repo.description,
+                htmlUrl = repo.htmlUrl,
+                url = repo.url,
+                /// Details
+                createdAt = null,
+                updatedAt = null,
+                pushedAt = null,
+                homepage = null,
+                language = null,
+                size = null)
+        }
+    }
+}

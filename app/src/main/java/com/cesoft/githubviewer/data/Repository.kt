@@ -1,5 +1,6 @@
 package com.cesoft.githubviewer.data
 
+import androidx.lifecycle.MutableLiveData
 import com.cesoft.githubviewer.data.remote.GitHubApiImpl
 import kotlinx.coroutines.sync.withLock
 
@@ -35,5 +36,11 @@ object Repository {
         } else {
             mutableListOf()
         }
+    }
+    suspend fun getRepoDetails(owner: String, repo: String): RepoDetailModel? {
+        return remote.getRepoDetail(owner, repo)?.toModel()
+    }
+    suspend fun getRepoDetails(path: String): RepoDetailModel? {
+        return remote.getRepoDetail(path)?.toModel()
     }
 }

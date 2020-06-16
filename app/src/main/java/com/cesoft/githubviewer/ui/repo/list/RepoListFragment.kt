@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.fragment_repo_list.*
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // TODO: Detectar errores de API, mostrar y  no incrementar pagina!!!
-// TODO: Base de datos con las ultimas busquedas...? Autocomplete
+//
 class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAdapter.OnSearchListener {
 
     private var viewModel = RepoListViewModel()

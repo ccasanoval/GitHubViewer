@@ -78,7 +78,7 @@ object GitHubApiImpl {
         res.headers()["link"]?.let { link ->
             Log.e(TAG, "------------------------------------link=$link")
             val target = "https://api.github.com/repositories?since="
-            val rel = "rel=\"next\""
+            //val rel = "rel=\"next\""
             val i = link.indexOf(target)
             if(i > 0) {
                 val tmp = link.substring(i+target.length)
@@ -90,19 +90,17 @@ object GitHubApiImpl {
     }
     private suspend fun getRepoList(): List<RepoEntity>? {
         val since = index[currentPage]
-        android.util.Log.e("API", "getRepoListSince----------------------since=$since")
+        Log.e("API", "getRepoListSince----------------------since=$since")
 
         val res = api.getRepoList(since)
         updateIndex(res)
-
-        android.util.Log.e("API", "OK--------------" + res.isSuccessful)
-        android.util.Log.e("API", "LINK--------------" + res.headers()["link"])
 
         if (res.isSuccessful)
             return res.body()
         else
             return res.body()//TODO...................
     }
+
 
     /// Search fetch functions
     private fun updateSearchPage(res: Response<SearchRepoEntity>) {
@@ -212,6 +210,17 @@ object GitHubApiImpl {
             else {
                 getRepoList()
             }
+        }
+    }
+
+    suspend fun getRepoDetail(owner: String, repo: String): RepoDetailEntity? {
+        mutex.withLock {
+            return api.getRepoDetail(owner, repo)
+        }
+    }
+    suspend fun getRepoDetail(path: String): RepoDetailEntity? {
+        mutex.withLock {
+            return api.getRepoDetail(path)
         }
     }
 }

@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
 import java.util.*
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 data class RepoDetailEntity(
     @SerializedName("id")
     val id: String?,
@@ -30,15 +32,16 @@ data class RepoDetailEntity(
     @SerializedName("pushed_at")
     val pushedAt: String?,//"2018-11-08T13:16:24Z",
     @SerializedName("homepage")
-    val homepage: String,
+    val homepage: String?,
     @SerializedName("language")
-    val language: String,
+    val language: String?,
     @SerializedName("size")
-    val size: Long
+    val size: Long?
 ) {
     companion object {
-        private const val pattern = "yyyy-MM-ddThh:mm:ssZ"
+        private const val pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'"
         private val dateFormat = SimpleDateFormat(pattern, Locale.ROOT)
+        //@RequiresApi(Build.VERSION_CODES.O) DateTimeFormatter.ISO_LOCAL_TIME
     }
     fun toModel(): RepoDetailModel {
         val ownerModel = owner?.toModel()
