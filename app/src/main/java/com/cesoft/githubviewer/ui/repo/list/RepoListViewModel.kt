@@ -26,6 +26,10 @@ class RepoListViewModel : ViewModel() {
     val status: LiveData<Status>
         get() = _status
 
+    private val _error = MutableLiveData<Int>()
+    val error: LiveData<Int>
+        get() = _error
+
     private val _isWorking = MutableLiveData<Boolean>()
     private fun workInProgress() = _isWorking.postValue(true)
     private fun workFinished() = _isWorking.postValue(false)
@@ -39,9 +43,14 @@ class RepoListViewModel : ViewModel() {
         }
     }
 
-    private fun processRes(repos: MutableList<RepoModel>) {
-        _list.postValue(repos)
-        _status.postValue(Status(Repository.getPage(), Repository.getPageMax(), repos.size))
+    private fun processRes(repos: MutableList<RepoModel>?) {
+        if(repos != null) {
+            _list.postValue(repos)
+            _status.postValue(Status(Repository.getPage(), Repository.getPageMax(), repos.size))
+        }
+        else {
+            _error.postValue(Repository.getLastErrorCode())
+        }
         workFinished()
     }
 
@@ -64,6 +73,7 @@ class RepoListViewModel : ViewModel() {
     fun onSearch(query: String): MutableList<RepoModel>? = runBlocking(Dispatchers.IO) {
         workInProgress()
         currentQuery = query
+        Log.e(TAG,"onSearch---------------------------------query=$query")
         val repos = Repository.getRepoListNext(currentQuery)
         processRes(repos)
         repos

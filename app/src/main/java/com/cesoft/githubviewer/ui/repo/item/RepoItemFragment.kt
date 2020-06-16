@@ -15,13 +15,14 @@ import com.cesoft.githubviewer.R
 import com.cesoft.githubviewer.data.RepoDetailModel
 import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.ui.MainActivity
+import com.cesoft.githubviewer.ui.repo.list.RepoListFragment
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.fragment_repo_item.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: make a call to the repo api to get extra data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // TODO: ERrores de web 400 , 300 ...
 class RepoItemFragment : Fragment() {
 
@@ -44,21 +45,26 @@ class RepoItemFragment : Fragment() {
             repo = it as RepoModel
             repo?.let { repo ->
                 viewModel = RepoItemViewModel(repo)
-            }
-                ?: run {
+            } ?: run {
                 findNavController().popBackStack()
-                //TODO: Show error message...
+                Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()
             }
         }
 
-        fabViewInWeb.setOnClickListener {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(repo?.htmlUrl))
-            startActivity(browserIntent)
+        fab.setOnClickListener {
+            findNavController().popBackStack()
         }
 
         viewModel.data.observe(viewLifecycleOwner, Observer { data ->
             repoDetail = data
             initFields()
+        })
+        viewModel.error.observe(viewLifecycleOwner, Observer { error ->
+            Log.e(TAG, "ERROR:------------------------------------------ $error")
+            when(error) {
+                504 -> Snackbar.make(root_layout, getString(R.string.error_504), Snackbar.LENGTH_LONG).show()
+                else -> Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()
+            }
         })
     }
 
@@ -74,18 +80,22 @@ class RepoItemFragment : Fragment() {
                 Glide.with(this).load(repo.owner?.avatarUrl).into(image)
 
                 htmlUrl.text = repo.htmlUrl
+                if(repo.language != null)
+                language.text = getString(R.string.language, repo.language)
+                if(repo.size != null)
+                    size.text = getString(R.string.size, repo.size)
 
-                createdAt.text = "$CREATED?"
+                createdAt.text = getString(R.string.created_at, "?")
                 repo.createdAt?.let { date ->
-                    createdAt.text = "$CREATED${dateFormat.format(date)}"
+                    createdAt.text = getString(R.string.created_at, dateFormat.format(date))
                 }
-                updatedAt.text = "$UPDATED?"
+                updatedAt.text = getString(R.string.updated_at, "?")
                 repo.updatedAt?.let { date ->
-                    updatedAt.text = "$UPDATED${dateFormat.format(date)}"
+                    updatedAt.text = getString(R.string.updated_at, dateFormat.format(date))
                 }
-                pushedAt.text = "$PUSHED?"
+                pushedAt.text = getString(R.string.pushed_at, "?")
                 repo.pushedAt?.let { date ->
-                    pushedAt.text = "$PUSHED${dateFormat.format(date)}"
+                    pushedAt.text = getString(R.string.pushed_at, dateFormat.format(date))
                 }
             }
         }
@@ -94,8 +104,6 @@ class RepoItemFragment : Fragment() {
     companion object {
         private val TAG: String = RepoItemFragment::class.simpleName!!
         private val dateFormat = SimpleDateFormat.getDateTimeInstance()
-        private const val CREATED = "Created: "
-        private const val UPDATED = "Updated: "
-        private const val PUSHED =  "Pushed: "
+
     }
 }

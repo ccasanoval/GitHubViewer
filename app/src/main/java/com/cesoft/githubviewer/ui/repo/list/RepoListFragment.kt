@@ -13,7 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.cesoft.githubviewer.R
 import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.ui.hideMenuIcon
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_repo_item.*
 import kotlinx.android.synthetic.main.fragment_repo_list.*
+import kotlinx.android.synthetic.main.fragment_repo_list.root_layout
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +71,13 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
             btnNext.isEnabled = !isWorking
             progressBar.visibility = if(isWorking) View.VISIBLE else View.GONE
         })
+        viewModel.error.observe(viewLifecycleOwner, Observer { error ->
+            Log.e(TAG, "ERROR:------------------------------------------ $error")
+            when(error) {
+                504 -> Snackbar.make(root_layout, getString(R.string.error_504), Snackbar.LENGTH_LONG).show()
+                else -> Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()
+            }
+        })
     }
 
     /// Implements RepoListAdapter.OnClickListener
@@ -78,6 +88,7 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
     }
     /// Implements RepoListAdapter.OnSearchListener
     override fun onSearch(query: String): MutableList<RepoModel>? {
+        Log.e(TAG,"onSearch---------------------------------query=$query")
         return viewModel.onSearch(query)
     }
 

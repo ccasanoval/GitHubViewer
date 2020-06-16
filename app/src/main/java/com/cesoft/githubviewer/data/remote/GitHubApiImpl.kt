@@ -16,7 +16,7 @@ import java.lang.Exception
 //
 object GitHubApiImpl {
     private val TAG: String = GitHubApiImpl::class.simpleName!!
-    private const val CACHE_SIZE = 100*1024L     //bytes
+    private const val CACHE_SIZE = 5*1024*1024L  //bytes
     private const val CACHE_MAX_AGE = 10*60      //seconds
     private const val CACHE_MAX_STALE = 24*60*60 //seconds
     private const val GITHUB_API_URL = "https://api.github.com/"
@@ -36,6 +36,9 @@ object GitHubApiImpl {
     private val index = HashMap<Int, Int>()
     val page: Int
         get() = if(isSearching) currentPage else currentPage+1
+
+    /// Error
+    var lastErrorCode: Int = 0
 
     /// GitHub API
     private val api: GitHubApi by lazy {
@@ -67,7 +70,12 @@ object GitHubApiImpl {
                 else {
                     request.newBuilder().header("Cache-Control","public, only-if-cached, max-stale=$CACHE_MAX_STALE").build()
                 }
-                chain.proceed(request)
+                val res = chain.proceed(request)
+                if(res.networkResponse!=null)
+                    Log.e(TAG, "*********** NETWORK RESPONSE *************")
+                if(res.cacheResponse!=null)
+                    Log.e(TAG, "************ CACHE RESPONSE **************")
+                res
             }
             .addInterceptor(interceptor)
             .build()
@@ -76,7 +84,7 @@ object GitHubApiImpl {
     /// Normal fetch functions
     private fun updateIndex(res: Response<List<RepoEntity>>) {
         res.headers()["link"]?.let { link ->
-            Log.e(TAG, "------------------------------------link=$link")
+            Log.e(TAG, "updateIndex------------------------------------link=$link")
             val target = "https://api.github.com/repositories?since="
             //val rel = "rel=\"next\""
             val i = link.indexOf(target)
@@ -89,16 +97,19 @@ object GitHubApiImpl {
         }
     }
     private suspend fun getRepoList(): List<RepoEntity>? {
+Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$currentPage isSearching=$isSearching")
         val since = index[currentPage]
-        Log.e("API", "getRepoListSince----------------------since=$since")
-
         val res = api.getRepoList(since)
-        updateIndex(res)
-
-        if (res.isSuccessful)
-            return res.body()
-        else
-            return res.body()//TODO...................
+        return if(res.isSuccessful) {
+            lastErrorCode = 0
+            updateIndex(res)
+            res.body()
+        }
+        else {
+            currentPage--
+            lastErrorCode = res.code()
+            null
+        }
     }
 
 
@@ -127,20 +138,17 @@ object GitHubApiImpl {
         }
     }
     private suspend fun getRepoListSearch(): List<RepoEntity>? {
-        Log.e(TAG, "getRepoListSearch---------------------------searchQuery=$searchQuery")
-
+        Log.e(TAG, "getRepoListSearch------------------------------searchQuery=$searchQuery")
         val res = api.getRepoListSearch(searchQuery!!, currentPage)
-
-        Log.e(TAG,"getRepoListSearch---------------------------count=${res.body()?.count}")
-        Log.e(TAG,"getRepoListSearch---------------------------isIncomplete=${res.body()?.isIncomplete}")
-        Log.e(TAG,"getRepoListSearch---------------------------items=${res.body()?.items?.size}")
-
-        updateSearchPage(res)
-
-        if(res.isSuccessful)
-            return res.body()?.items
-        else
-            return res.body()?.items//TODO...................
+        return if(res.isSuccessful) {
+            updateSearchPage(res)
+            lastErrorCode = 0
+            res.body()?.items
+        }
+        else {
+            lastErrorCode = res.code()
+            null
+        }
     }
 
     private fun updatePagePrev() {
@@ -155,19 +163,14 @@ object GitHubApiImpl {
             }
         }
     }
-    private fun updatePageNext(restart: Boolean) {
-        Log.e(TAG, "updatePageNext-----------------------------------------------restart=$restart isSearching=$isSearching currentPAge=$currentPage maxSearchPAge=$maxSearchPage")
-        if(restart) {
-            if(isSearching) {
-                currentPage = 0
-                maxSearchPage = 0
-            }
-            else {
-                currentPage = -1
-            }
+    private fun restartPage() {
+        Log.e(TAG, "restartPage----------------------------------------------- isSearching=$isSearching currentPAge=$currentPage maxSearchPAge=$maxSearchPage")
+        if(isSearching) {
+            currentPage = 0
+            maxSearchPage = 0
         }
-        if(!isSearching || currentPage < maxSearchPage) {
-            currentPage++
+        else {
+            currentPage = -1
         }
     }
 
@@ -185,11 +188,11 @@ object GitHubApiImpl {
             }
         }
     }
-
     suspend fun getRepoListNextPage(query: String?=null): List<RepoEntity>? {
         mutex.withLock {
             Log.e(TAG,"getRepoListNextPage---------------------------query=$query maxSearchPage=$maxSearchPage currentPage=$currentPage isSearching=$isSearching")
-            updatePageNext(query != searchQuery)
+            if(query != searchQuery)restartPage()
+            currentPage++
             searchQuery = query
 
             return if(isSearching) {
@@ -200,7 +203,6 @@ object GitHubApiImpl {
             }
         }
     }
-
     suspend fun getRepoListSamePage(): List<RepoEntity>? {
         mutex.withLock {
             Log.e(TAG,"getRepoListSamePage--------------------------- maxSearchPage=$maxSearchPage")
@@ -213,14 +215,26 @@ object GitHubApiImpl {
         }
     }
 
+    private fun processRepoDetail(res: Response<RepoDetailEntity>): RepoDetailEntity? {
+        return if(res.isSuccessful) {
+            lastErrorCode = 0
+            res.body()
+        }
+        else {
+            lastErrorCode = res.code()
+            null
+        }
+    }
     suspend fun getRepoDetail(owner: String, repo: String): RepoDetailEntity? {
         mutex.withLock {
-            return api.getRepoDetail(owner, repo)
+            val res = api.getRepoDetail(owner, repo)
+            return processRepoDetail(res)
         }
     }
     suspend fun getRepoDetail(path: String): RepoDetailEntity? {
         mutex.withLock {
-            return api.getRepoDetail(path)
+            val res = api.getRepoDetail(path)
+            return processRepoDetail(res)
         }
     }
 }

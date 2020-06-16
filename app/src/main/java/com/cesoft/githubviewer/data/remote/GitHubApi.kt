@@ -41,7 +41,7 @@ interface GitHubApi {
     //https://developer.github.com/v3/repos/
     // Ej: https://api.github.com/repos/mojombo/grit
     @GET("/repos/{owner}/{repo}")
-    suspend fun getRepoDetail(@Path("owner")owner: String, @Path("repo")repo: String): RepoDetailEntity
+    suspend fun getRepoDetail(@Path("owner")owner: String, @Path("repo")repo: String): Response<RepoDetailEntity>
     @GET("/repos/{path}")
-    suspend fun getRepoDetail(@Path("path", encoded = true)path: String): RepoDetailEntity
+    suspend fun getRepoDetail(@Path("path", encoded = true)path: String): Response<RepoDetailEntity>
 }
