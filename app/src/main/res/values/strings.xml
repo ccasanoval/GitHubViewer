@@ -20,4 +20,5 @@
     <string name="api_error">Server error</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="error_504">No Internet connection</string>
+    <string name="error_empty">Any repository found</string>
 </resources>

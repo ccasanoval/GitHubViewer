@@ -1,5 +1,6 @@
 package com.cesoft.githubviewer.data.remote
 
+import androidx.annotation.Keep
 import com.cesoft.githubviewer.data.RepoDetailModel
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
@@ -7,6 +8,7 @@ import java.util.*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+@Keep
 data class RepoDetailEntity(
     @SerializedName("id")
     val id: String?,
@@ -175,4 +177,4 @@ data class RepoDetailEntity(
 "network_count": 521,
 "subscribers_count": 64
 }
-*/
+ */

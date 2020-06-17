@@ -1,9 +1,6 @@
 package com.cesoft.githubviewer.data
 
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import com.cesoft.githubviewer.data.remote.GitHubApiImpl
-import kotlinx.coroutines.sync.withLock
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -23,8 +20,6 @@ object Repository {
         else null
     }
     suspend fun getRepoListNext(query: String?=null): MutableList<RepoModel>? {
-        Log.e(TAG,"getRepoListNext---------------------------query=$query")
-
         val res = remote.getRepoListNextPage(query)
         return if(res != null) {
             MutableList(res.size) { i -> res[i].toModel() }

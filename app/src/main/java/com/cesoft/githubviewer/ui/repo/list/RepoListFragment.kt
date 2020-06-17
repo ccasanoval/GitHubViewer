@@ -1,10 +1,16 @@
 package com.cesoft.githubviewer.ui.repo.list
 
+import android.app.SearchManager
+import android.database.Cursor
+import android.database.MatrixCursor
 import android.os.Bundle
-import android.util.Log
+import android.provider.BaseColumns
 import android.view.*
+import android.widget.AutoCompleteTextView
 import androidx.appcompat.widget.SearchView
 import androidx.core.os.bundleOf
+import androidx.cursoradapter.widget.CursorAdapter
+import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -12,21 +18,18 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.cesoft.githubviewer.R
 import com.cesoft.githubviewer.data.RepoModel
+import com.cesoft.githubviewer.ui.hideKeyboard
 import com.cesoft.githubviewer.ui.hideMenuIcon
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_repo_item.*
 import kotlinx.android.synthetic.main.fragment_repo_list.*
-import kotlinx.android.synthetic.main.fragment_repo_list.root_layout
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// TODO: Detectar errores de API, mostrar y  no incrementar pagina!!!
-//
-class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAdapter.OnSearchListener {
+class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
 
     private var viewModel = RepoListViewModel()
-    private var adapter: RepoListAdapter? = RepoListAdapter(mutableListOf(), this, this)
+    private var adapter: RepoListAdapter? = RepoListAdapter(mutableListOf(), this)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,10 +75,13 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
             progressBar.visibility = if(isWorking) View.VISIBLE else View.GONE
         })
         viewModel.error.observe(viewLifecycleOwner, Observer { error ->
-            Log.e(TAG, "ERROR:------------------------------------------ $error")
             when(error) {
-                504 -> Snackbar.make(root_layout, getString(R.string.error_504), Snackbar.LENGTH_LONG).show()
-                else -> Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()
+                RepoListViewModel.ERROR_EMPTY ->
+                    Snackbar.make(root_layout, getString(R.string.error_empty), Snackbar.LENGTH_LONG).show()
+                504 ->
+                    Snackbar.make(root_layout, getString(R.string.error_504), Snackbar.LENGTH_LONG).show()
+                else ->
+                    Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()
             }
         })
     }
@@ -87,13 +93,13 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
         //findNavController().navigate(R.id.action_RepoListFragment_to_RepoItemFragment, bundle)
     }
     /// Implements RepoListAdapter.OnSearchListener
-    override fun onSearch(query: String): MutableList<RepoModel>? {
-        Log.e(TAG,"onSearch---------------------------------query=$query")
-        return viewModel.onSearch(query)
-    }
+//    override fun onSearchResult(query: String): MutableList<RepoModel>? {
+//        Log.e(TAG,"onSearchResult---------------------------------query=$query")
+//        return viewModel.onSearch(query)
+//    }
 
     private fun refreshData(data: MutableList<RepoModel>) {
-        adapter = RepoListAdapter(data, this, this)
+        adapter = RepoListAdapter(data, this)
         list.adapter = adapter
         adapter?.notifyDataSetChanged()
     }
@@ -112,20 +118,61 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener, RepoListAd
         inflater.inflate(R.menu.repolist, menu)
         val menuItem = menu.findItem(R.id.menu_search)
         val searchView = menuItem?.actionView as SearchView
+
+        //https://spin.atomicobject.com/2019/11/11/how-to-create-a-searchview-with-suggestions-in-kotlin/
+        searchView.queryHint = getString(R.string.search)
+        searchView.findViewById<AutoCompleteTextView>(R.id.search_src_text).threshold = 3
+        val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
+        val to = intArrayOf(R.id.item_label)
+        val cursorAdapter = SimpleCursorAdapter(
+            context,
+            R.layout.suggestion_item,
+            null,
+            from,
+            to,
+            CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
+        val suggestions = listOf(
+            "user:ccasanoval",
+            "GitHubViewer language:kotlin",
+            "GitHubViewer user:ccasanoval"
+        )
+        searchView.suggestionsAdapter = cursorAdapter
+        searchView.setOnSuggestionListener(object: SearchView.OnSuggestionListener {
+            override fun onSuggestionSelect(position: Int): Boolean {
+                return false
+            }
+            override fun onSuggestionClick(position: Int): Boolean {
+                val cursor = searchView.suggestionsAdapter.getItem(position) as Cursor
+                val selection = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
+                val goDirectly = true
+                searchView.setQuery(selection, goDirectly)
+                if(goDirectly)hideKeyboard()
+                return true
+            }
+        })
+
         searchView.apply {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?): Boolean {
-                    adapter?.filter?.filter(query)
+                    viewModel.onSearch(query)
                     return false
                 }
                 override fun onQueryTextChange(newText: String?): Boolean {
+                    val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+                    query?.let {
+                        suggestions.forEachIndexed { index, suggestion ->
+                            if(suggestion.contains(query, true))
+                                cursor.addRow(arrayOf(index, suggestion))
+                        }
+                    }
+                    cursorAdapter.changeCursor(cursor)
                     return true
                 }
             })
         }
         menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                viewModel.onSeachClose()
+                viewModel.onSearchClose()
                 return true // Return true to collapse action view
             }
             override fun onMenuItemActionExpand(item: MenuItem): Boolean {

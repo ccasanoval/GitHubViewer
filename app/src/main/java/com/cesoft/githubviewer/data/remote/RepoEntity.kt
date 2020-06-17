@@ -1,10 +1,12 @@
 package com.cesoft.githubviewer.data.remote
 
+import androidx.annotation.Keep
 import com.cesoft.githubviewer.data.RepoModel
 import com.google.gson.annotations.SerializedName
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+@Keep
 data class RepoEntity(
     @SerializedName("id")
     val id: String?,
@@ -110,4 +112,4 @@ Link: <https://api.github.com/repositories?since=364>; rel="next"
 "trees_url": "http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}"
 }
 ]
-*/
+ */

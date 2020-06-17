@@ -1,6 +1,5 @@
 package com.cesoft.githubviewer.ui.repo.list
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -47,6 +46,9 @@ class RepoListViewModel : ViewModel() {
         if(repos != null) {
             _list.postValue(repos)
             _status.postValue(Status(Repository.getPage(), Repository.getPageMax(), repos.size))
+            if(repos.size == 0) {
+                _error.postValue(ERROR_EMPTY)
+            }
         }
         else {
             _error.postValue(Repository.getLastErrorCode())
@@ -61,24 +63,22 @@ class RepoListViewModel : ViewModel() {
             processRes(repos)
         }
     }
-    fun goNext(query: String?=null) {
+    fun goNext() {
         GlobalScope.launch(Dispatchers.IO) {
             workInProgress()
-            val realQuery = query ?: currentQuery
-            val repos = Repository.getRepoListNext(realQuery)
+            val repos = Repository.getRepoListNext(currentQuery)
             processRes(repos)
         }
     }
 
-    fun onSearch(query: String): MutableList<RepoModel>? = runBlocking(Dispatchers.IO) {
+    fun onSearch(query: String?): MutableList<RepoModel>? = runBlocking(Dispatchers.IO) {
         workInProgress()
         currentQuery = query
-        Log.e(TAG,"onSearch---------------------------------query=$query")
         val repos = Repository.getRepoListNext(currentQuery)
         processRes(repos)
         repos
     }
-    fun onSeachClose() {
+    fun onSearchClose() {
         if(currentQuery != null) {
             currentQuery = null
             GlobalScope.launch(Dispatchers.IO) {
@@ -91,5 +91,6 @@ class RepoListViewModel : ViewModel() {
 
     companion object {
         private val TAG: String = RepoListViewModel::class.simpleName!!
+        const val ERROR_EMPTY = -1
     }
 }

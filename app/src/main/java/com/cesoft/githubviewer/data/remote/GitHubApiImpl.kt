@@ -84,7 +84,6 @@ object GitHubApiImpl {
     /// Normal fetch functions
     private fun updateIndex(res: Response<List<RepoEntity>>) {
         res.headers()["link"]?.let { link ->
-            Log.e(TAG, "updateIndex------------------------------------link=$link")
             val target = "https://api.github.com/repositories?since="
             //val rel = "rel=\"next\""
             val i = link.indexOf(target)
@@ -92,12 +91,10 @@ object GitHubApiImpl {
                 val tmp = link.substring(i+target.length)
                 val j = tmp.indexOf('>')
                 index[currentPage + 1] = tmp.substring(0, j).toInt()
-                Log.e(TAG, "------------------------------------index[$currentPage+1]=${index[currentPage + 1]}")
             }
         }
     }
     private suspend fun getRepoList(): List<RepoEntity>? {
-Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$currentPage isSearching=$isSearching")
         val since = index[currentPage]
         val res = api.getRepoList(since)
         return if(res.isSuccessful) {
@@ -117,11 +114,9 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
     private fun updateSearchPage(res: Response<SearchRepoEntity>) {
         if(maxSearchPage > 0)return
         currentPage = 1
-        Log.e(TAG, "updateSearchPage-------------------------------0 ---- currentPage=$currentPage")
 
         //link: <https://api.github.com/search/repositories?q=kotlin&page=2>; rel="next", <https://api.github.com/search/repositories?q=kotlin&page=34>; rel="last"
         res.headers()["link"]?.let { link ->
-            Log.e(TAG, "updateSearchPage------------------------------------link=$link")
             try {
                 val targetIni = "&page="
                 val targetEnd = ">; rel=\"last\""
@@ -129,8 +124,8 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
                 val j = link.lastIndexOf(targetEnd)
                 maxSearchPage = if (i in 1 until j) {
                     link.substring(i + targetIni.length, j).toInt()
-                } else 0
-                Log.e(TAG, "updateSearchPage----------------currentPage=$currentPage--------------------maxSearchPage=$maxSearchPage")
+                }
+                else 0
             }
             catch(e: Exception) {
                 Log.e(TAG, "updateSearchPage:e: ($link) ",e)
@@ -138,12 +133,23 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
         }
     }
     private suspend fun getRepoListSearch(): List<RepoEntity>? {
-        Log.e(TAG, "getRepoListSearch------------------------------searchQuery=$searchQuery")
         val res = api.getRepoListSearch(searchQuery!!, currentPage)
         return if(res.isSuccessful) {
             updateSearchPage(res)
             lastErrorCode = 0
             res.body()?.items
+        }
+        else {
+            currentPage--
+            lastErrorCode = res.code()
+            null
+        }
+    }
+
+    private fun processRepoDetail(res: Response<RepoDetailEntity>): RepoDetailEntity? {
+        return if(res.isSuccessful) {
+            lastErrorCode = 0
+            res.body()
         }
         else {
             lastErrorCode = res.code()
@@ -164,7 +170,6 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
         }
     }
     private fun restartPage() {
-        Log.e(TAG, "restartPage----------------------------------------------- isSearching=$isSearching currentPAge=$currentPage maxSearchPAge=$maxSearchPage")
         if(isSearching) {
             currentPage = 0
             maxSearchPage = 0
@@ -190,22 +195,24 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
     }
     suspend fun getRepoListNextPage(query: String?=null): List<RepoEntity>? {
         mutex.withLock {
-            Log.e(TAG,"getRepoListNextPage---------------------------query=$query maxSearchPage=$maxSearchPage currentPage=$currentPage isSearching=$isSearching")
-            if(query != searchQuery)restartPage()
-            currentPage++
-            searchQuery = query
+            if(query != searchQuery) {
+                searchQuery = query
+                restartPage()
+            }
 
             return if(isSearching) {
+                if(currentPage < maxSearchPage)
+                    currentPage++
                 getRepoListSearch()
             }
             else {
+                currentPage++
                 getRepoList()
             }
         }
     }
     suspend fun getRepoListSamePage(): List<RepoEntity>? {
         mutex.withLock {
-            Log.e(TAG,"getRepoListSamePage--------------------------- maxSearchPage=$maxSearchPage")
             return if(isSearching) {
                 getRepoListSearch()
             }
@@ -215,16 +222,6 @@ Log.e(TAG,"getRepoList--------------> maxSearchPage=$maxSearchPage currentPage=$
         }
     }
 
-    private fun processRepoDetail(res: Response<RepoDetailEntity>): RepoDetailEntity? {
-        return if(res.isSuccessful) {
-            lastErrorCode = 0
-            res.body()
-        }
-        else {
-            lastErrorCode = res.code()
-            null
-        }
-    }
     suspend fun getRepoDetail(owner: String, repo: String): RepoDetailEntity? {
         mutex.withLock {
             val res = api.getRepoDetail(owner, repo)

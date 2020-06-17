@@ -2,11 +2,9 @@ package com.cesoft.githubviewer.data
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.annotation.Keep
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-@Keep
 data class OwnerModel(
     val id: Int,
     val nodeId: String?,

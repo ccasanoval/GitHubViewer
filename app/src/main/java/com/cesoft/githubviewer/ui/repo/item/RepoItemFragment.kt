@@ -1,7 +1,5 @@
 package com.cesoft.githubviewer.ui.repo.item
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,15 +13,13 @@ import com.cesoft.githubviewer.R
 import com.cesoft.githubviewer.data.RepoDetailModel
 import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.ui.MainActivity
-import com.cesoft.githubviewer.ui.repo.list.RepoListFragment
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.fragment_repo_item.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: ERrores de web 400 , 300 ...
+//
 class RepoItemFragment : Fragment() {
 
     private lateinit var viewModel: RepoItemViewModel
@@ -81,7 +77,7 @@ class RepoItemFragment : Fragment() {
 
                 htmlUrl.text = repo.htmlUrl
                 if(repo.language != null)
-                language.text = getString(R.string.language, repo.language)
+                    language.text = getString(R.string.language, repo.language)
                 if(repo.size != null)
                     size.text = getString(R.string.size, repo.size)
 

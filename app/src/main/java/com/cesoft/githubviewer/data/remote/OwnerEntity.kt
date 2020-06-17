@@ -1,11 +1,12 @@
 package com.cesoft.githubviewer.data.remote
 
+import androidx.annotation.Keep
 import com.cesoft.githubviewer.data.OwnerModel
-import com.cesoft.githubviewer.data.RepoModel
 import com.google.gson.annotations.SerializedName
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+@Keep
 data class OwnerEntity(
     @SerializedName("id")
     val id: Int,
