@@ -130,6 +130,8 @@ object GitHubApiImpl {
             catch(e: Exception) {
                 Log.e(TAG, "updateSearchPage:e: ($link) ",e)
             }
+        } ?: run {
+            maxSearchPage = 1
         }
     }
     private suspend fun getRepoListSearch(): List<RepoEntity>? {

@@ -56,7 +56,6 @@ class RepoItemFragment : Fragment() {
             initFields()
         })
         viewModel.error.observe(viewLifecycleOwner, Observer { error ->
-            Log.e(TAG, "ERROR:------------------------------------------ $error")
             when(error) {
                 504 -> Snackbar.make(root_layout, getString(R.string.error_504), Snackbar.LENGTH_LONG).show()
                 else -> Snackbar.make(root_layout, getString(R.string.api_error), Snackbar.LENGTH_LONG).show()

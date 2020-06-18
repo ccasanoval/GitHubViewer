@@ -49,6 +49,9 @@ class RepoListViewModel : ViewModel() {
             if(repos.size == 0) {
                 _error.postValue(ERROR_EMPTY)
             }
+            else {
+                _error.postValue(0)
+            }
         }
         else {
             _error.postValue(Repository.getLastErrorCode())

@@ -5,18 +5,7 @@ import retrofit2.http.*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//https://www.andreasjakl.com/how-to-retrofit-moshi-coroutines-recycler-view-for-rest-web-service-operations-with-kotlin-for-android/
-//https://blog.hipolabs.com/api-search-with-pagination-for-android-development-in-2020-f47717fb34ac
 interface GitHubApi {
-
-//    @GET("/repositories")
-//    suspend fun getAllRepos(
-//        //https://developer.github.com/v3/#pagination
-//        //Note: It's important to form calls with Link header values instead of constructing your own URLs.
-//        //So GitHub doesn't care about this pagination parameters!! make use of headers ones
-//        //@Query("page")page: Int,
-//        //@Query("per_page")perPage: Int
-//    ): List<RepoEntity>
 
     //----------------------------------------------------------------------------------------------
     //https://developer.github.com/v3/#pagination

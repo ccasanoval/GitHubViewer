@@ -76,6 +76,9 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         })
         viewModel.error.observe(viewLifecycleOwner, Observer { error ->
             when(error) {
+                0 -> {
+                    // No error to show
+                }
                 RepoListViewModel.ERROR_EMPTY ->
                     Snackbar.make(root_layout, getString(R.string.error_empty), Snackbar.LENGTH_LONG).show()
                 504 ->
@@ -92,11 +95,6 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         findNavController().navigate(R.id.nav_repo_item, bundle)
         //findNavController().navigate(R.id.action_RepoListFragment_to_RepoItemFragment, bundle)
     }
-    /// Implements RepoListAdapter.OnSearchListener
-//    override fun onSearchResult(query: String): MutableList<RepoModel>? {
-//        Log.e(TAG,"onSearchResult---------------------------------query=$query")
-//        return viewModel.onSearch(query)
-//    }
 
     private fun refreshData(data: MutableList<RepoModel>) {
         adapter = RepoListAdapter(data, this)
@@ -119,7 +117,6 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         val menuItem = menu.findItem(R.id.menu_search)
         val searchView = menuItem?.actionView as SearchView
 
-        //https://spin.atomicobject.com/2019/11/11/how-to-create-a-searchview-with-suggestions-in-kotlin/
         searchView.queryHint = getString(R.string.search)
         searchView.findViewById<AutoCompleteTextView>(R.id.search_src_text).threshold = 3
         val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
