@@ -3,10 +3,10 @@ package com.cesoft.githubviewer.ui.repo.list
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.data.Repository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -36,7 +36,7 @@ class RepoListViewModel : ViewModel() {
         get() = _isWorking
 
     init {
-        GlobalScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             val repos = Repository.getRepoListSame()
             processRes(repos)
         }
@@ -60,14 +60,14 @@ class RepoListViewModel : ViewModel() {
     }
 
     fun goPrev() {
-        GlobalScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             workInProgress()
             val repos = Repository.getRepoListPrev()
             processRes(repos)
         }
     }
     fun goNext() {
-        GlobalScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             workInProgress()
             val repos = Repository.getRepoListNext(currentQuery)
             processRes(repos)
@@ -84,7 +84,7 @@ class RepoListViewModel : ViewModel() {
     fun onSearchClose() {
         if(currentQuery != null) {
             currentQuery = null
-            GlobalScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(Dispatchers.IO) {
                 workInProgress()
                 val repos = Repository.getRepoListNext(currentQuery)
                 processRes(repos)

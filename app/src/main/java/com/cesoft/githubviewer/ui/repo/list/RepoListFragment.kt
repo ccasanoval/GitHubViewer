@@ -117,6 +117,7 @@ class RepoListFragment : Fragment(), RepoListAdapter.OnClickListener {
         val menuItem = menu.findItem(R.id.menu_search)
         val searchView = menuItem?.actionView as SearchView
 
+        //https://spin.atomicobject.com/2019/11/11/how-to-create-a-searchview-with-suggestions-in-kotlin/
         searchView.queryHint = getString(R.string.search)
         searchView.findViewById<AutoCompleteTextView>(R.id.search_src_text).threshold = 3
         val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)

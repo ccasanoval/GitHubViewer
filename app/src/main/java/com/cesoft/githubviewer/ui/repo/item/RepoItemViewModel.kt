@@ -3,11 +3,11 @@ package com.cesoft.githubviewer.ui.repo.item
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.cesoft.githubviewer.data.RepoDetailModel
 import com.cesoft.githubviewer.data.RepoModel
 import com.cesoft.githubviewer.data.Repository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ class RepoItemViewModel(val repo: RepoModel) : ViewModel() {
         get() = _error
 
     init {
-        GlobalScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             if(repo.fullName != null) {
                 repoDetails = Repository.getRepoDetails(repo.fullName)
             }
